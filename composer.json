@@ -4,6 +4,7 @@
     "type": "yii2-extension",
     "keywords": ["yii2","yii2-socket"," web-socket"," yii2-ratchet"," ratchet-socket"," yii2-web-socket"],
     "license": "LGPL-3.0+",
+    "minimum-stability": "dev-master",
     "authors": [
         {
             "name": "akbar joudi",
