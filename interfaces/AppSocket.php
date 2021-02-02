@@ -1,6 +1,6 @@
 <?php
 
-namespace aki\socket\components;
+namespace aki\socket\interfaces;
 
 use app\models\SocketResource;
 use app\models\User;
