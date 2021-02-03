@@ -78,6 +78,11 @@ class SocketListener extends Widget
         $js .= "
         conn.onopen = $this->onOpen;
         conn.onmessage = $this->onMessage;
+
+        window.onbeforeunload = function() {
+            conn.onclose = function () {}; // disable onclose handler first
+            conn.close();
+        };
         ";
         Yii::$app->view->registerJs($js, \yii\web\View::POS_END);
     }

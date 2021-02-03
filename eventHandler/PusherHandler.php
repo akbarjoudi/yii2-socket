@@ -47,6 +47,9 @@ class PusherHandler implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $conn)
     {
+        echo "close connection";
+        $conn->close();
+        unset($conn);
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
@@ -102,7 +105,7 @@ class PusherHandler implements MessageComponentInterface
         if (!empty($socketModel)) {
 
             //بستن ارتباط سوکت قبلی
-            // unset($this->clients[$socketModel->resource_id]);
+            unset($this->clients[$socketModel->resource_id]);
             $socketModel->resource_id = $rid;
             if (!$socketModel->save()) {
                 return $conn->send(Json::encode([
