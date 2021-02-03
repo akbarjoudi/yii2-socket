@@ -1,4 +1,4 @@
-# yii2 Websocket
+# Yii2 Websocket
 
 for yii2 web application
 
