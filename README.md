@@ -29,7 +29,7 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist aki/yii2-socket "*"
+php composer require aki/yii2-socket:dev-master
 ```
 
 or add
