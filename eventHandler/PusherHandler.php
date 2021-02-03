@@ -1,37 +1,24 @@
 <?php
 
-namespace aki\socket\interfaces;
+namespace aki\socket\eventHandler;
 
-use app\models\SocketResource;
+use aki\socket\models\SocketResource;
 use app\models\User;
-use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Ratchet\Wamp\WampServerInterface;
+use Ratchet\WebSocket\MessageComponentInterface;
 use yii\helpers\Json;
 
-class AppSocket implements MessageComponentInterface
+class PusherHandler implements MessageComponentInterface
 {
+    public $clients = [];
 
-    /**
-     * list of clients
-     */
-    protected $clients;
-
-
-
-    /**
-     * @param $conn Ratchet\MessageComponentInterface
-     */
     public function onOpen(ConnectionInterface $conn)
     {
-        $rid = $this->getResourceId($conn);
-        $this->clients[$rid] = $conn;
-        echo "Connection is established: " . $rid, "\n";
+        $this->clients[$conn->resourceId] = $conn;
+        echo "\n Connection is established: " . $conn->resourceId, "\n";
     }
 
-    /**
-     * @param $from Ratchet\MessageComponentInterface
-     * @param $msg message sended
-     */
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $numRecv = count($this->clients) - 1;
@@ -43,7 +30,7 @@ class AppSocket implements MessageComponentInterface
             $numRecv == 1 ? '' : 's'
         );
 
-        
+
         //json decode
         $data = Json::decode($msg, true);
 
@@ -53,31 +40,18 @@ class AppSocket implements MessageComponentInterface
         //call method
         if (method_exists($this, $method) && $method == 'authRequest') {
             call_user_func_array([$this, $method], [$from->resourceId, $data]);
-        }
-        else if(method_exists($this, $method) && $method == 'sendMessageRequest')
-        {
+        } else if (method_exists($this, $method) && $method == 'sendMessageRequest') {
             call_user_func_array([$this, $method], [$from, $data['message'], $data['to_user_id']]);
         }
     }
 
     public function onClose(ConnectionInterface $conn)
     {
-        // The connection is closed, remove it, as we can no longer send it messages
-        $socketModel = SocketResource::find()->where(['source_id' => $conn->resource_id]);
-        if(!empty($socketModel)){
-            $socketModel->remove();
-        }
-        unset($conn);
-        echo "Connection {$conn->resourceId} has disconnected\n";
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
-        echo "An error has occurred: {$e->getMessage()}\n";
-
-        $conn->close();
     }
-
 
     /**
      * Process auth request. Find user chat(if not exists - create it)
@@ -94,9 +68,24 @@ class AppSocket implements MessageComponentInterface
             $userToken = $data['user']['token'];
         } else $userToken = '';
 
-        $user = User::class;
+        if (isset($data['authModel'])) {
+            $authModel = str_replace('.', trim("\ "), $data['authModel']);
+        }
+        else{
+            if(class_exists(\app\models\User::class)){
+                $authModel = \app\models\User::class;
+            }
+            else{
+                $this->clients[$rid]->send(Json::encode([
+                    'result' => false,
+                    'message' => 'Authenticate Model not found',
+                ]));
+                return ;
+            }
+        }
 
-        if (null === $userModel = $user::findIdentityByAccessToken($userToken)) {
+
+        if (null === $userModel = $authModel::findIdentityByAccessToken($userToken)) {
             echo 'errCode 1' . PHP_EOL;
 
             $conn = $this->clients[$rid];
@@ -113,9 +102,9 @@ class AppSocket implements MessageComponentInterface
         if (!empty($socketModel)) {
 
             //بستن ارتباط سوکت قبلی
-            unset($this->clients[$socketModel->resource_id]);
+            // unset($this->clients[$socketModel->resource_id]);
             $socketModel->resource_id = $rid;
-            if(!$socketModel->save()){
+            if (!$socketModel->save()) {
                 return $conn->send(Json::encode([
                     'result' => false,
                     'message' => 'User not saved.',
@@ -126,7 +115,7 @@ class AppSocket implements MessageComponentInterface
             $socketModel = new SocketResource();
             $socketModel->user_id = $userModel->id;
             $socketModel->resource_id = $rid;
-            if(!$socketModel->save()){
+            if (!$socketModel->save()) {
                 return $conn->send(Json::encode([
                     'result' => false,
                     'message' => 'User not saved.',
@@ -145,45 +134,23 @@ class AppSocket implements MessageComponentInterface
         ]));
     }
 
-    private function sendMessageRequest($conn, $message, $uid)
-    {   
-        $socketModel = SocketResource::find()->where(['user_id' => $uid])->one();
-
-        //چک کردن اینکه آیا کاربری که برای آن پیام ارسال می شود وجود دارد
-        if(empty($socketModel))
-        {
-            return $conn->send(Json::encode([
-                'result' => false,
-                'message' => 'socket not found.',
-            ]));
-        }
-        if(array_key_exists($socketModel->resource_id, $this->clients))
-        {
-            $to_conn = $this->clients[$socketModel->resource_id];
-            return $to_conn->send(Json::encode([
-                'result' => true,
-                'message' => $message,
-            ]));
-        } 
-        else{
-            return $conn->send(Json::encode([
-                'result' => true,
-                'message' => "user not found.",
-            ]));
-        }
-    }
-
-
-
-    /**
-     * Get connection resource id
-     *
-     * @access private
-     * @param ConnectionInterface $conn
-     * @return string
-     */
-    private function getResourceId(ConnectionInterface $conn)
+    public function onSend($data)
     {
-        return $conn->resourceId;
+        $data = json_decode($data, true);
+        if (!isset($data['user_id']) || !isset($data['message'])) {
+            return false;
+        }
+        $socketModel = SocketResource::find()->where(['user_id' => $data['user_id']])->one();
+        if (empty($socketModel)) {
+            return;
+        }
+        $client = $this->clients[$socketModel->resource_id];
+        $client->send(json_encode([
+            'type' => 'chat',
+            'message' => $data['message']
+        ]));
+
+        echo "Message Delivered To UserID: " . $data['user_id'] . " (" . date('Y-m-d H:i:s') . ");\n";
+        return true;
     }
 }

@@ -10,7 +10,7 @@ use yii\helpers\Json;
 /**
  * @author akbar joudi <akbar.joody@gmail.com>
  */
-class Socket extends Widget
+class Message extends Widget
 {
 
     /**

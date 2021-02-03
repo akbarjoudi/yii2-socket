@@ -28,7 +28,7 @@ class Socket extends Component
     /**
      * @param Array $data to convert json
      */
-    public function run($data, $pusherName = 'Pusher')
+    public function request($data, $pusherName = 'Pusher')
     {
         if(!class_exists('ZMQContext'))
         {
