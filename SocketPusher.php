@@ -7,7 +7,7 @@ use yii\web\ServerErrorHttpException;
 /**
  * @author akbar joudi <akbar.joody@gmail.com>
 */
-class Socket extends Component
+class SocketPusher extends Component
 {
     /**
      * @var String socket port

@@ -45,7 +45,10 @@ first add to config/console.php
 <?php
 'socket' => [
     'class' => 'aki\socket\commands\SocketController',
-    'pusherClass' => 'aki\socket\eventHandler\PusherHandler' 
+    'port' => '8083',
+    'pusherClass' => 'aki\socket\eventHandler\PusherHandler' ,
+    'pusherHost' => '127.0.0.1',
+    'pusherPort' => '8082'
 ],
 ?>
 ```
@@ -63,12 +66,20 @@ php yii socket --port=8083
 ```
 
 ## Usage widget
-
+set config global in config.php
+```php
+'container' => [
+    'definitions' => [
+        'aki\socket\widgets\PusherSocket' => [
+            'host' => "localhost",
+            'port' => '8083'
+        ],
+        'authModel' => app\models\User::class,
+    ],
+],
+```
 ```php
  <?= Socket::widget([
-    'port' => 8083,
-    'host' => "localhost",
-    'authModel' => app\models\User::class,
     'data' => [
         'user' => [
             'token' => Yii::$app->user->identity->auth_key,//for current login
@@ -87,8 +98,8 @@ php yii socket --port=8083
 add component to config.php
 ```php
 'components' => [
-    'socket' => [
-        'class' => 'aki\socket\Socket',
+    'socketPusher' => [
+        'class' => 'aki\socket\SocketPusher',
         'port' => '8082',
         'host' => "localhost"
     ],
@@ -97,7 +108,7 @@ add component to config.php
 
 and use it:
 ```php
-Yii::$app->socket->request([
+Yii::$app->socketPusher->request([
     'message' => 'hello world.',
     'user_id' => '107'
 ]);
@@ -105,7 +116,7 @@ Yii::$app->socket->request([
 
 use custom Pusher class:
 ```php
-Yii::$app->socket->request([
+Yii::$app->socketPusher->request([
     'message' => 'hello world.',
     'user_id' => '107'
 ], 'myPusher');
