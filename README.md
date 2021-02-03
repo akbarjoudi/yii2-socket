@@ -2,6 +2,23 @@
 
 for yii2 web application
 
+## Dependencies
+
+
+```
+"react/zmq": "^0.4.0"
+```
+The above library needs a (linux zmq.so) library
+
+```
+~$ sudo pecl install zmq-beta
+```
+and add extension to php.ini
+
+```
+~$ sudo nano /etc/php/apache2/php.ini
+```
+
 ## Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
