@@ -28,7 +28,7 @@ class SocketPusher extends Component
     /**
      * @param Array $data to convert json
      */
-    public function request($data, $pusherName = 'Pusher')
+    public function request($user_id, $data, $pusherName = 'Pusher')
     {
         if(!class_exists('ZMQContext'))
         {
@@ -38,6 +38,7 @@ class SocketPusher extends Component
         $socket = $context->getSocket(\ZMQ::SOCKET_PUSH, $pusherName);
         $socket->connect("tcp://{$this->host}:{$this->port}");
 
+        $data = array_merge(['user_id' => $user_id], $data);
         $socket->send(json_encode($data));
     }
 }

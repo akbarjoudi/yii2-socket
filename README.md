@@ -108,16 +108,15 @@ add component to config.php
 
 and use it:
 ```php
-Yii::$app->socketPusher->request([
+//user_id = 100
+Yii::$app->socketPusher->request(100, [
     'message' => 'hello world.',
-    'user_id' => '107'
 ]);
 ```
 
 use custom Pusher class:
 ```php
-Yii::$app->socketPusher->request([
+Yii::$app->socketPusher->request(100, [
     'message' => 'hello world.',
-    'user_id' => '107'
 ], 'myPusher');
 ```

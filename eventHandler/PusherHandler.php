@@ -145,12 +145,11 @@ class PusherHandler implements MessageComponentInterface
             return;
         }
         $client = $this->clients[$socketModel->resource_id];
-        $client->send(json_encode([
-            'type' => 'chat',
-            'message' => $data['message']
-        ]));
+        $user_id = $data['user_id'];
+        unset($data['user_id']);
+        $client->send(json_encode($data));
 
-        echo "Message Delivered To UserID: " . $data['user_id'] . " (" . date('Y-m-d H:i:s') . ");\n";
+        echo "Message Delivered To UserID: " . $user_id . " (" . date('Y-m-d H:i:s') . ");\n";
         return true;
     }
 }
