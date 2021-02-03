@@ -53,12 +53,6 @@ first add to config/console.php
 ?>
 ```
 
-and run migration
-
-```
-yii migrate --migrationPath=@app/vendor/aki/yii2-socket/migration
-```
-
 Once the extension is installed, simply use it in your code by :
 
 ```
