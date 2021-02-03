@@ -84,6 +84,17 @@ php yii socket --port=8083
 
 ## Usage push data
 
+add component to config.php
+```php
+'components' => [
+    'socket' => [
+        'class' => 'aki\socket\Socket',
+        'port' => '8082',
+        'host' => "localhost"
+    ],
+]
+```
+
 ```php
 Yii::$app->socket->request([
     'message' => 'hello world.',
