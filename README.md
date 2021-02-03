@@ -70,7 +70,7 @@ set config global in config.php
 ```php
 'container' => [
     'definitions' => [
-        'aki\socket\widgets\PusherSocket' => [
+        'aki\socket\widgets\SocketListener' => [
             'host' => "localhost",
             'port' => '8083'
         ],
@@ -79,7 +79,7 @@ set config global in config.php
 ],
 ```
 ```php
- <?= Socket::widget([
+ <?= SocketListener::widget([
     'data' => [
         'user' => [
             'token' => Yii::$app->user->identity->auth_key,//for current login

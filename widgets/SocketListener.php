@@ -8,7 +8,7 @@ use yii\base\Widget;
 /**
  * @author akbar joudi <akbar.joody@gmail.com>
  */
-class PusherSocket extends Widget
+class SocketListener extends Widget
 {
 
     /**
