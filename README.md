@@ -95,9 +95,18 @@ add component to config.php
 ]
 ```
 
+and use it:
 ```php
 Yii::$app->socket->request([
     'message' => 'hello world.',
     'user_id' => '107'
 ]);
+```
+
+use custom Pusher class:
+```php
+Yii::$app->socket->request([
+    'message' => 'hello world.',
+    'user_id' => '107'
+], 'myPusher');
 ```
