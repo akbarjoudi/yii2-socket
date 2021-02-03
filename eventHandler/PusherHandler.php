@@ -13,6 +13,9 @@ class PusherHandler implements MessageComponentInterface
 {
     public $clients = [];
 
+    public $clientIds = [];
+    
+
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients[$conn->resourceId] = $conn;
@@ -47,7 +50,7 @@ class PusherHandler implements MessageComponentInterface
 
     public function onClose(ConnectionInterface $conn)
     {
-        echo "close connection";
+        echo "close connection client id : {$conn->resourceId}";
         $conn->close();
         unset($conn);
     }
@@ -101,30 +104,40 @@ class PusherHandler implements MessageComponentInterface
         $conn = $this->clients[$rid];
 
 
-        $socketModel = SocketResource::find()->where(['user_id' => $userModel->id])->one();
-        if (!empty($socketModel)) {
 
-            //بستن ارتباط سوکت قبلی
-            unset($this->clients[$socketModel->resource_id]);
-            $socketModel->resource_id = $rid;
-            if (!$socketModel->save()) {
-                return $conn->send(Json::encode([
-                    'result' => false,
-                    'message' => 'User not saved.',
-                ]));
-            }
-        } else {
-            //
-            $socketModel = new SocketResource();
-            $socketModel->user_id = $userModel->id;
-            $socketModel->resource_id = $rid;
-            if (!$socketModel->save()) {
-                return $conn->send(Json::encode([
-                    'result' => false,
-                    'message' => 'User not saved.',
-                ]));
-            }
+        $oldRId = $this->clientIds[$userModel->id] ?? null;
+        $this->clientIds[$userModel->id] = $rid;
+        //$socketModel = SocketResource::find()->where(['user_id' => $userModel->id])->one();
+        if ($oldRId && $rid != $oldRId) {
+            unset($this->clients[$oldRId]);
         }
+
+
+
+        // $socketModel = SocketResource::find()->where(['user_id' => $userModel->id])->one();
+        // if (!empty($socketModel)) {
+
+        //     //بستن ارتباط سوکت قبلی
+        //     unset($this->clients[$socketModel->resource_id]);
+        //     $socketModel->resource_id = $rid;
+        //     if (!$socketModel->save()) {
+        //         return $conn->send(Json::encode([
+        //             'result' => false,
+        //             'message' => 'User not saved.',
+        //         ]));
+        //     }
+        // } else {
+        //     //
+        //     $socketModel = new SocketResource();
+        //     $socketModel->user_id = $userModel->id;
+        //     $socketModel->resource_id = $rid;
+        //     if (!$socketModel->save()) {
+        //         return $conn->send(Json::encode([
+        //             'result' => false,
+        //             'message' => 'User not saved.',
+        //         ]));
+        //     }
+        // }
 
         $conn->send(Json::encode([
             'result' => true,
@@ -143,11 +156,21 @@ class PusherHandler implements MessageComponentInterface
         if (!isset($data['user_id']) || !isset($data['message'])) {
             return false;
         }
-        $socketModel = SocketResource::find()->where(['user_id' => $data['user_id']])->one();
-        if (empty($socketModel)) {
+
+
+        $rId = $this->clientIds[$data['user_id']] ?? null;
+        if (!$rId) {
             return;
         }
-        $client = $this->clients[$socketModel->resource_id];
+        // echo var_dump($this->clientIds).'--------';
+        $client = $this->clients[$rId];
+
+
+        // $socketModel = SocketResource::find()->where(['user_id' => $data['user_id']])->one();
+        // if (empty($socketModel)) {
+        //     return;
+        // }
+        // $client = $this->clients[$socketModel->resource_id];
         $user_id = $data['user_id'];
         unset($data['user_id']);
         $client->send(json_encode($data));
