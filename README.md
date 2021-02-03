@@ -42,7 +42,7 @@ yii migrate --migrationPath=@app/vendor/aki/yii2-socket/migration
 Once the extension is installed, simply use it in your code by :
 
 ```
-php yii socket --port=8082
+php yii socket --port=8083
 ```
 
 ## Usage widget
