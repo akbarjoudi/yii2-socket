@@ -76,6 +76,13 @@ class PusherHandler implements MessageComponentInterface
 
         if (isset($data['authModel'])) {
             $authModel = str_replace('.', trim("\ "), $data['authModel']);
+            if(!class_exists($authModel)){
+                $this->clients[$rid]->send(Json::encode([
+                    'result' => false,
+                    'message' => 'Authenticate Model not found',
+                ]));
+                return ;
+            }
         }
         else{
             if(class_exists(\app\models\User::class)){
