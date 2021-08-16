@@ -81,7 +81,7 @@ set config global in config.php
         'user' => [
             'token' => Yii::$app->user->identity->auth_key,//for current login
         ]
-    ]
+    ],
     'onMessage' => "function(e) {
         console.log('recived data : ');
         console.log(e.data);
