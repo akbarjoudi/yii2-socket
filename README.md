@@ -69,9 +69,9 @@ set config global in config.php
     'definitions' => [
         'aki\socket\widgets\SocketListener' => [
             'host' => "localhost",
-            'port' => '8083'
-        ],
-        'authModel' => app\models\User::class,
+            'port' => '8083',
+	    'authModel' => app\models\User::class,
+        ]
     ],
 ],
 ```
