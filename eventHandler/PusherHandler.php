@@ -160,7 +160,8 @@ class PusherHandler implements MessageComponentInterface
     public function onSend($data)
     {
         $data = json_decode($data, true);
-        if (!isset($data['user_id']) || !isset($data['message'])) {
+        if (!isset($data['user_id'])) {
+            echo "user id not found";
             return false;
         }
 
@@ -169,15 +170,8 @@ class PusherHandler implements MessageComponentInterface
         if (!$rId) {
             return;
         }
-        // echo var_dump($this->clientIds).'--------';
         $client = $this->clients[$rId];
 
-
-        // $socketModel = SocketResource::find()->where(['user_id' => $data['user_id']])->one();
-        // if (empty($socketModel)) {
-        //     return;
-        // }
-        // $client = $this->clients[$socketModel->resource_id];
         $user_id = $data['user_id'];
         unset($data['user_id']);
         $client->send(json_encode($data));
