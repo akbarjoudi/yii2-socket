@@ -121,30 +121,6 @@ class PusherHandler implements MessageComponentInterface
 
 
 
-        // $socketModel = SocketResource::find()->where(['user_id' => $userModel->id])->one();
-        // if (!empty($socketModel)) {
-
-        //     //بستن ارتباط سوکت قبلی
-        //     unset($this->clients[$socketModel->resource_id]);
-        //     $socketModel->resource_id = $rid;
-        //     if (!$socketModel->save()) {
-        //         return $conn->send(Json::encode([
-        //             'result' => false,
-        //             'message' => 'User not saved.',
-        //         ]));
-        //     }
-        // } else {
-        //     //
-        //     $socketModel = new SocketResource();
-        //     $socketModel->user_id = $userModel->id;
-        //     $socketModel->resource_id = $rid;
-        //     if (!$socketModel->save()) {
-        //         return $conn->send(Json::encode([
-        //             'result' => false,
-        //             'message' => 'User not saved.',
-        //         ]));
-        //     }
-        // }
 
         $conn->send(Json::encode([
             'result' => true,
