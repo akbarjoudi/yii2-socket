@@ -9,7 +9,12 @@
 namespace aki\socket\commands;
 
 use yii\console\Controller;
-use aki\socket\eventHandler\PusherHandler;
+use \React\EventLoop\Factory;
+use \React\ZMQ\Context;
+use \React\Socket\Server;
+use \Ratchet\Server\IoServer;
+use \Ratchet\Http\HttpServer;
+use \Ratchet\WebSocket\WsServer;
 
 /**
  * This command echoes the first argument that you have entered.
@@ -25,9 +30,14 @@ class SocketController extends Controller
      */
     public $port=8083;
 
-    public $pusherClass = 'aki\socket\eventHandler\PusherHandler';
-    public $pusherHost = "127.0.0.1";
-    public $pusherPort = "8082";
+    public $pusher = [
+        'class' => 'aki\socket\eventHandler\PusherHandler',
+        'host' => "127.0.0.1",
+        'port' => "8082"
+    ];
+    // public $pusherClass = 'aki\socket\eventHandler\PusherHandler';
+    // public $pusherHost = "127.0.0.1";
+    // public $pusherPort = "8082";
 
     /**
      * options
@@ -46,20 +56,19 @@ class SocketController extends Controller
      */
     public function actionIndex()
     {
-        $loop   = \React\EventLoop\Factory::create();
-        $pusher = new $this->pusherClass;
-
+        $loop   = Factory::create();
+        $pusher = new $this->pusher['class'];
         // Listen for the web server to make a ZeroMQ push after an ajax request
-        $context = new \React\ZMQ\Context($loop);
+        $context = new Context($loop);
         $pull = $context->getSocket(\ZMQ::SOCKET_PULL);
-        $pull->bind('tcp://'.$this->pusherHost.':'.$this->pusherPort); // Binding to 127.0.0.1 means the only client that can connect is itself
+        $pull->bind('tcp://'.$this->pusher['host'].':'.$this->pusher['port']); // Binding to 127.0.0.1 means the only client that can connect is itself
         $pull->on('message', array($pusher, 'onSend'));
 
         // Set up our WebSocket server for clients wanting real-time updates
-        $webSock = new \React\Socket\Server('0.0.0.0:'.$this->port, $loop); // Binding to 0.0.0.0 means remotes can connect
-        $webServer = new \Ratchet\Server\IoServer(
-            new \Ratchet\Http\HttpServer(
-                new \Ratchet\WebSocket\WsServer(
+        $webSock = new Server('0.0.0.0:'.$this->port, $loop); // Binding to 0.0.0.0 means remotes can connect
+        $webServer = new IoServer(
+            new HttpServer(
+                new WsServer(
                     $pusher
                 )
             ),
