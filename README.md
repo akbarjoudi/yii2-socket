@@ -49,9 +49,11 @@ first add to config/console.php
 'socket' => [
     'class' => 'aki\socket\commands\SocketController',
     'port' => '8083',
-    'pusherClass' => 'aki\socket\eventHandler\PusherHandler' ,
-    'pusherHost' => '127.0.0.1',
-    'pusherPort' => '8082'
+    'pusher' => [
+	'class' => 'common\components\PusherHandler',
+	'host' => '127.0.0.1',
+	'port' => '8082'
+    ]
 ],
 ?>
 ```
