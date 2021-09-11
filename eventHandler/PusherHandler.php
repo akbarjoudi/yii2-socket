@@ -70,10 +70,22 @@ class PusherHandler implements MessageComponentInterface
      */
     private function authRequest($rid, array $data)
     {
+        
         if (isset($data['user']) && isset($data['user']['token'])) {
-            $userToken = $data['user']['token'];
-        } else $userToken = '';
-
+            $tokenModel = UserToken::getUserTokenModel($data['user']['token']);
+            if(empty($tokenModel)){
+                $this->clients[$rid]->send(Json::encode([
+                    'result' => false,
+                    'message' => 'token model not found',
+                ]));
+            }
+        } else {
+            $this->clients[$rid]->send(Json::encode([
+                'result' => false,
+                'message' => 'token not found',
+            ]));
+        }
+        
         if (isset($data['authModel'])) {
             $authModel = str_replace('.', trim("\ "), $data['authModel']);
             if(!class_exists($authModel)){
@@ -96,30 +108,23 @@ class PusherHandler implements MessageComponentInterface
                 return ;
             }
         }
-
-
-        if (null === $userModel = $authModel::findIdentityByAccessToken($userToken)) {
+        $conn = $this->clients[$rid];
+        
+        $userModel = User::findOne($tokenModel->user_id);
+        if (null === $userModel) {
             echo 'errCode 1' . PHP_EOL;
 
             $conn = $this->clients[$rid];
-            $conn->send(Json::encode(['result' => false, 'message' => 'user not login']));
+            $conn->send(Json::encode(['result' => false, 'message' => "user not login"]));
             return;
         }
+        
+        echo "#user {$userModel->id} width username {$userModel->profile->username} authorized as client #{$rid}" . PHP_EOL;
 
-        echo "#{$data['user']['token']} with {$userToken} user {$userModel->id} aka {$userModel->username} authorized as client #{$rid}" . PHP_EOL;
 
         $conn = $this->clients[$rid];
-
-
-
-        $oldRId = $this->clientIds[$userModel->id] ?? null;
-        $this->clientIds[$userModel->id] = $rid;
-        //$socketModel = SocketResource::find()->where(['user_id' => $userModel->id])->one();
-        if ($oldRId && $rid != $oldRId) {
-            unset($this->clients[$oldRId]);
-        }
-
-
+        
+        $this->clientIds[$userModel->id][] = $rid;
 
 
         $conn->send(Json::encode([
@@ -127,11 +132,14 @@ class PusherHandler implements MessageComponentInterface
             'message' => 'You have logged in successfully',
             'data' => [
                 'user' => [
-                    'username' => $userModel->username
+                    'username' => $userModel->profile->username
                 ],
             ]
         ]));
     }
+
+
+
 
     public function onSend($data)
     {
@@ -142,17 +150,24 @@ class PusherHandler implements MessageComponentInterface
         }
 
 
-        $rId = $this->clientIds[$data['user_id']] ?? null;
-        if (!$rId) {
+        $rIds = $this->clientIds[$data['user_id']] ?? null;
+        if (!is_array($rIds)) {
             return;
         }
-        $client = $this->clients[$rId];
 
         $user_id = $data['user_id'];
         unset($data['user_id']);
-        $client->send(json_encode($data));
+        foreach ($rIds as $rid) {
+            if(isset($this->clients[$rid])){
+                $client = $this->clients[$rid];
+                
+                $client->send(json_encode($data));
+        
+                echo "Message Delivered To UserID: " . $user_id . " (" . date('Y-m-d H:i:s') . "); "." type : ". $data['type']."\n";
+            }
+        }
 
-        echo "Message Delivered To UserID: " . $user_id . " (" . date('Y-m-d H:i:s') . ");\n";
+       
         return true;
     }
 }
