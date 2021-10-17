@@ -51,6 +51,7 @@ class PusherHandler implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn)
     {
         echo "close connection client id : {$conn->resourceId}";
+        unset($this->clients[$conn->resourceId]);
         $conn->close();
         unset($conn);
     }
